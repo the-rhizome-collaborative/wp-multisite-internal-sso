@@ -35,16 +35,23 @@ class WP_Multisite_Internal_SSO {
     }
 
     public function check_sso() {
-        $current_host = $_SERVER['HTTP_HOST'];
-        if ( $current_host === $this->secondary_site ) {
+        if ( is_admin() || defined('DOING_AJAX') && DOING_AJAX ) {
+            return;
+        }
+    
+        // If the user is logged in, no need to run SSO logic.
+        if ( is_user_logged_in() ) {
             if ( WP_DEBUG && WP_DEBUG_LOG ) {
-                error_log( 'WP_Multisite_Internal_SSO: Detected secondary site.' );
+                error_log( 'WP_Multisite_Internal_SSO: User already logged in on secondary site, no action needed.' );
             }
+            return;
+        }
+    
+        $current_host = $_SERVER['HTTP_HOST'];
+    
+        if ( $current_host === $this->secondary_site ) {
             $this->handle_secondary_site_logic();
         } elseif ( $current_host === $this->primary_site ) {
-            if ( WP_DEBUG && WP_DEBUG_LOG ) {
-                error_log( 'WP_Multisite_Internal_SSO: Detected primary site.' );
-            }
             $this->handle_primary_site_logic();
         }
     }
@@ -175,11 +182,20 @@ class WP_Multisite_Internal_SSO {
         if ( $user && $user->exists() ) {
             wp_set_auth_cookie( $user->ID, false );
             wp_set_current_user( $user->ID );
+            
+            if ( is_user_logged_in() ) {
+                if ( WP_DEBUG && WP_DEBUG_LOG ) {
+                    error_log( 'WP_Multisite_Internal_SSO: User ' . $user_login . ' is now considered logged in on secondary site in this request.' );
+                }
+            } else {
+                if ( WP_DEBUG && WP_DEBUG_LOG ) {
+                    error_log( 'WP_Multisite_Internal_SSO: User ' . $user_login . ' login attempt failed to reflect in this request.' );
+                }
+            }
         } else {
             if ( WP_DEBUG && WP_DEBUG_LOG ) {
                 error_log( 'WP_Multisite_Internal_SSO: Could not find user ' . $user_login . ' on secondary site.' );
             }
         }
     }
-
 }

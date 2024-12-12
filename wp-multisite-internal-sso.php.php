@@ -3,7 +3,7 @@
  * Plugin Name: WP Multisite Internal SSO
  * Plugin URI:  https://example.com
  * Description: Enables automatic login (SSO) for users from one multisite installation to another.
- * Version:     0.0.3
+ * Version:     0.0.4
  * Author:      
  * Author URI:  https://example.com
  * Network:     true
