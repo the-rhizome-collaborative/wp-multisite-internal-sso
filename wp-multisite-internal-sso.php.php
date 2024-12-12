@@ -3,7 +3,7 @@
  * Plugin Name: WP Multisite Internal SSO
  * Plugin URI:  https://example.com
  * Description: Enables automatic login (SSO) for users from one multisite installation to another.
- * Version:     0.0.1
+ * Version:     0.0.2
  * Author:      
  * Author URI:  https://example.com
  * Network:     true
@@ -32,5 +32,15 @@ function my_ms_sso_plugin_init() {
     // Add a debug log entry.
     if ( WP_DEBUG && WP_DEBUG_LOG ) {
         error_log( 'WP Multisite Internal SSO plugin initialized.' );
+    }
+}
+
+add_action( 'wp_body_open', 'display_logged_in_status' );
+
+function display_logged_in_status() {
+    if ( is_user_logged_in() ) {
+        echo '<div style="position: fixed; top: 35px; right: 0; background: #000; color: #fff; padding: 10px;">Logged in</div>';
+    } else {
+        echo '<div style="position: fixed; top: 0; right: 0; background: #000; color: #fff; padding: 10px;">Not logged in</div>';
     }
 }
