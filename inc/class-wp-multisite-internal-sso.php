@@ -14,7 +14,7 @@ class WP_Multisite_Internal_SSO {
         $this->secondary_site = defined('WPMIS_SECONDARY') ? WPMIS_SECONDARY : get_site_url(2);
         $this->redirect_cookie_name = defined('WPMIS_COOKIE_NAME') ? WPMIS_COOKIE_NAME : 'wpmssso_redirect_attempt';
 
-        add_action( 'init', [ $this, 'init_action' ], 1 );
+        // add_action( 'init', [ $this, 'init_action' ], 1 );
         add_action( 'template_redirect', [ $this, 'check_sso' ] );
         add_action('wp_body_open', [ $this, 'display_logout_button']);
     }
@@ -26,7 +26,7 @@ class WP_Multisite_Internal_SSO {
     }
 
     public function init_action() {
-        $this->debug_message('Init action triggered.');
+        $this->debug_message( 'Init action triggered.' );
         $this->debug_message( 'Primary site: ' . $this->primary_site . ' ' );
         $this->debug_message( 'Secondary site: ' . $this->secondary_site . ' ' );
     }
@@ -44,8 +44,8 @@ class WP_Multisite_Internal_SSO {
             $this->debug_message( 'User does not exist on primary site. Looking at site: ' . get_site_url() );
             return;
         }
-
-        $current_host = $_SERVER['SERVER_PROTOCOL'] . $_SERVER['HTTP_HOST'];
+        $current_protocol = isset( $_SERVER['HTTPS'] ) ? 'https://' : 'http://';
+        $current_host = $current_protocol . $_SERVER['HTTP_HOST'];
 
         if ( $current_host === $this->secondary_site ) {
             $this->debug_message( 'Running SSO logic for secondary site.' . $current_host );
@@ -91,8 +91,8 @@ class WP_Multisite_Internal_SSO {
 
     public function display_logout_button() {
         if ( is_user_logged_in() ) {
-            echo '<div style="position: relative; top: 0; right: 0; background: #000; color: #fff; padding: 10px;"><a href="' . $this->primary_site . '/?forcelogout=true&source=' . $this->secondary_site.'">Logout</a></div>';
-            echo '<div style="position: relative; top: 0; right: 0; background: #000; color: #fff; padding: 10px;"><a href="' . $_SERVER['SERVER_PROTOCOL'] . $_SERVER['HTTP_HOST'] . '/?clear_cookies=true' .'">Clear Cookies</a></div>';
+            echo '<div style="position: relative; top: 0; right: 0; background: #000; color: #fff; padding: 10px;"><a href="' . $this->primary_site . '/?forcelogout=true&source=' . $this->secondary_site . '">Logout</a></div>';
+            echo '<div style="position: relative; top: 0; right: 0; background: #000; color: #fff; padding: 10px;"><a href="' . isset( $_SERVER['HTTPS'] ) ? 'https://' : 'http://' . $_SERVER['HTTP_HOST'] . '/?clear_cookies=true' .'">Clear Cookies</a></div>';
         }
     }
 
