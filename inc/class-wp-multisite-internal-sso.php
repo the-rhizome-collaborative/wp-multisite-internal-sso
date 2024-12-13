@@ -5,12 +5,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class WP_Multisite_Internal_SSO {
 
-    private $primary_site   = 'multisite.lndo.site';
-    private $secondary_site = 'bar.site';
-    private $redirect_cookie_name = 'wpmssso_redirect_attempt';
+    private $primary_site;
+    private $secondary_site;
+    private $redirect_cookie_name;
 
     public function __construct() {
-        add_action( 'init', [ $this, 'init_action' ] );
+        $this->primary_site = defined('WPMIS_PRIMARY') ? WPMIS_PRIMARY : get_site_url(1);
+        $this->secondary_site = defined('WPMIS_SECONDARY') ? WPMIS_SECONDARY : get_site_url(2);
+        $this->redirect_cookie_name = defined('WPMIS_COOKIE_NAME') ? WPMIS_COOKIE_NAME : 'wpmssso_redirect_attempt';
+
+        add_action( 'init', [ $this, 'init_action' ], 1 );
         add_action( 'template_redirect', [ $this, 'check_sso' ] );
         add_action('wp_body_open', [ $this, 'display_logout_button']);
     }
@@ -22,7 +26,9 @@ class WP_Multisite_Internal_SSO {
     }
 
     public function init_action() {
-        // $this->debug_message('Init action triggered.');
+        $this->debug_message('Init action triggered.');
+        $this->debug_message( 'Primary site: ' . $this->primary_site . ' ' );
+        $this->debug_message( 'Secondary site: ' . $this->secondary_site . ' ' );
     }
 
     public function check_sso() {
@@ -33,20 +39,22 @@ class WP_Multisite_Internal_SSO {
         }
 
         if ( $this->user_exists_on_primary_site() ) {
-            $this->debug_message( 'User exists on primary site.' );
+            $this->debug_message( 'User exists on primary site. ' . get_site_url() );
         } else {
-            $this->debug_message( 'User does not exist on primary site.' );
+            $this->debug_message( 'User does not exist on primary site. Looking at site: ' . get_site_url() );
             return;
         }
 
-        $current_host = $_SERVER['HTTP_HOST'];
+        $current_host = $_SERVER['SERVER_PROTOCOL'] . $_SERVER['HTTP_HOST'];
 
         if ( $current_host === $this->secondary_site ) {
-            $this->debug_message( 'Running SSO logic for secondary site.' );
+            $this->debug_message( 'Running SSO logic for secondary site.' . $current_host );
             $this->handle_secondary_site_logic();
         } elseif ( $current_host === $this->primary_site ) {
-            $this->debug_message( 'Running SSO logic for primary site.' );
+            $this->debug_message( 'Running SSO logic for primary site.' . $current_host );
             $this->handle_primary_site_logic();
+        } else {
+            $this->debug_message( 'No SSO logic for current host. ' . $current_host );
         }
     }
     
@@ -57,16 +65,16 @@ class WP_Multisite_Internal_SSO {
             if ( $user ) {
                 $user_name = $user->user_login;
             } else {
-                $this->debug_message( 'User not found.' );
+                $this->debug_message( 'User not found. ' . $user_id . ' on ' . get_site_url() );
                 return false;
             }
         } else {
             $this->debug_message( 'Required functions are not available.' );
             return false;
         }
-        switch_to_blog(1);
 
-        $user = get_user_by('login', $user_name);
+        $user = get_user_by('login', $user_name) ?? 'UserNotFound';
+        
         if ( $user ) {
             $this->debug_message( 'User ' . $user_name . ' exists in blog 1.' );
             return true;
@@ -77,21 +85,19 @@ class WP_Multisite_Internal_SSO {
     }
 
     public function logoutUser() {
-
-        wp_redirect( 'https://' . $this->primary_site . '/?forcelogout=true&source=' . $this->secondary_site );
+        $this->debug_message( 'Logging out user from all sites. PARAMS/?' . $this->primary_site . '/?forcelogout=true&source=' . $this->secondary_site );
+        wp_redirect( $this->primary_site . '/?forcelogout=true&source=' . $this->secondary_site );
     }
 
     public function display_logout_button() {
-        switch_to_blog(1);
-        echo get_site_url();
-        restore_current_blog();
         if ( is_user_logged_in() ) {
-            echo '<div style="position: relative; top: 0; right: 0; background: #000; color: #fff; padding: 10px;"><a href="https://' . $this->primary_site . '/?forcelogout=true&source=' . $this->secondary_site.'">Logout</a></div>';
-            echo '<div style="position: relative; top: 0; right: 0; background: #000; color: #fff; padding: 10px;"><a href="'. 'https://' . $_SERVER['HTTP_HOST'] . '/?clear_cookies=true' .'">Clear Cookies</a></div>';
+            echo '<div style="position: relative; top: 0; right: 0; background: #000; color: #fff; padding: 10px;"><a href="' . $this->primary_site . '/?forcelogout=true&source=' . $this->secondary_site.'">Logout</a></div>';
+            echo '<div style="position: relative; top: 0; right: 0; background: #000; color: #fff; padding: 10px;"><a href="' . $_SERVER['SERVER_PROTOCOL'] . $_SERVER['HTTP_HOST'] . '/?clear_cookies=true' .'">Clear Cookies</a></div>';
         }
     }
 
     public function clear_auth_cookies() {
+        $this->debug_message('Clearing authentication cookies.' );
         wp_clear_auth_cookie();
 
         setcookie( LOGGED_IN_COOKIE, '', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
@@ -105,7 +111,7 @@ class WP_Multisite_Internal_SSO {
         setcookie( $this->redirect_cookie_name, '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN );
 
 
-        $this->debug_message('Clearing authentication cookies.' );
+        $this->debug_message('Cleared authentication cookies.' );
 
         $user_id = get_current_user_id();
         if ( $user_id ) {

@@ -2,6 +2,8 @@
 
 A WordPress plugin that enables Single Sign-On (SSO) for users across multiple sites in a WordPress Multisite network. This plugin automatically logs in users from a primary site to a secondary site within the same network, facilitating seamless access between sites without requiring reauthentication.
 
+Currently, this is omni directional, users from Site 1 have access to Site 2 (if they've been added to both sites) but not vice versa.
+
 ## Features
 
 - **Automatic login**: Automatically logs in users from one site in a WordPress multisite network to another site.
