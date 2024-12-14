@@ -22,9 +22,30 @@ class WP_Multisite_Internal_SSO {
     }
 
     private function debug_message($message) {
+        $log_file = WP_CONTENT_DIR . '/sso-debug.log';
         if ( WP_DEBUG && WP_DEBUG_LOG ) {
-            error_log( 'WPMSSSO: ' . $message );
+            error_log( "WPMIS: " . $message . "\n", 3, $log_file );
         }
+    }
+
+    public function handle_template_redirect() {
+        $this->debug_message( 'Template redirect triggered.' );
+
+        $url_param_string = '';
+
+        foreach ($_GET as $key => $value) {
+            $url_param_string .= $key . '=' . $value . ' --- ';
+        }
+
+        if ( $url_param_string !== '' ) {
+            $this->debug_message( 'PARAMS: ' . $url_param_string );
+        }
+
+        if ( isset( $_GET['clear_cookies'] ) && $_GET['clear_cookies'] == 'true' ) {
+            $this->clear_auth_cookies();
+        }
+
+        $this->check_sso();
     }
 
     public function init_action() {
@@ -57,13 +78,6 @@ class WP_Multisite_Internal_SSO {
             return;
         }
 
-        // if ( $this->user_exists_on_primary_site() ) {
-        //     $this->debug_message( 'User exists on primary site. ' . get_site_url() );
-        // } else {
-        //     $this->debug_message( 'User does not exist on primary site. Looking at site: ' . get_site_url() );
-        //     return;
-        // }
-
         $current_host = $this->server_protocol . $_SERVER['HTTP_HOST'];
 
         if ( $current_host === $this->secondary_site ) {
@@ -76,37 +90,12 @@ class WP_Multisite_Internal_SSO {
             $this->debug_message( 'No SSO logic for current host. ' . $current_host );
         }
     }
-    
-    private function user_exists_on_primary_site() {
-        if ( function_exists( 'get_current_user_id' ) && function_exists( 'get_user_by' ) ) {
-            $user_id = get_current_user_id();
-            $user = get_user_by('id', $user_id);
-            if ( $user ) {
-                $user_name = $user->user_login;
-            } else {
-                $this->debug_message( 'User not found. ' . $user_id . ' on ' . get_site_url() );
-                return false;
-            }
-        } else {
-            $this->debug_message( 'Required functions are not available.' );
-            return false;
-        }
-
-        $user = get_user_by('login', $user_name) ?? 'UserNotFound';
-        
-        if ( $user ) {
-            $this->debug_message( 'User ' . $user_name . ' exists in blog 1.' );
-            return true;
-        } else {
-            $this->debug_message( 'User ' . $user_name . ' does not exist in blog 1.' );
-            return false;
-        }
-    }
 
     public function logoutUser() {
-        $this->debug_message( 'Logging out user from all sites. PARAMS/?' . $this->primary_site . '/?forcelogout=true&source=' . $this->secondary_site );
+        $url_payload = $this->primary_site . '/?forcelogout=true&source=' . $this->secondary_site;
+        $this->debug_message( 'Logging out user from all sites. PARAMS/?' . $url_payload );
         if ( get_site_url() === $this->secondary_site ) {
-            wp_redirect( $this->primary_site . '/?forcelogout=true&source=' . $this->secondary_site );
+            wp_redirect( $url_payload );
         }
         $this->clear_auth_cookies();
         wp_logout();
