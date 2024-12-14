@@ -16,7 +16,7 @@ class WP_Multisite_Internal_SSO {
         $this->redirect_cookie_name = defined('WPMIS_COOKIE_NAME') ? WPMIS_COOKIE_NAME : 'wpmssso_redirect_attempt';
         $this->server_protocol = isset( $_SERVER['HTTPS'] ) ? 'https://' : 'http://';
 
-        // add_action( 'init', [ $this, 'init_action' ], 1 );
+        add_action( 'init', [ $this, 'init_action' ], 1 );
         add_action( 'template_redirect', [ $this, 'check_sso' ] );
         add_action('wp_body_open', [ $this, 'display_logout_button']);
     }
@@ -31,6 +31,23 @@ class WP_Multisite_Internal_SSO {
         $this->debug_message( 'Init action triggered.' );
         $this->debug_message( 'Primary site: ' . $this->primary_site . ' ' );
         $this->debug_message( 'Secondary site: ' . $this->secondary_site . ' ' );
+
+        if ( isset($_GET["forcelogout"]) && $_GET["forcelogout"] == 'true' ) {
+
+            if ( ! is_user_logged_in() ) {
+                $this->debug_message( 'User not logged in. Cannot log them out.' );
+            } else {
+                $this->logoutUser();
+            }
+
+            // if source is set, redirect to source
+            if ( isset( $_GET['source'] ) ) {
+                $this->debug_message( 'Redirecting to ' . $_GET['source'] );
+                $redirect_url = add_query_arg( 'forcelogout', 'true', esc_url_raw( $_GET['source'] ) );
+                wp_redirect( $redirect_url );
+                exit;
+            }
+        }
     }
 
     public function check_sso() {
@@ -88,12 +105,26 @@ class WP_Multisite_Internal_SSO {
 
     public function logoutUser() {
         $this->debug_message( 'Logging out user from all sites. PARAMS/?' . $this->primary_site . '/?forcelogout=true&source=' . $this->secondary_site );
-        wp_redirect( $this->primary_site . '/?forcelogout=true&source=' . $this->secondary_site );
+        if ( get_site_url() === $this->secondary_site ) {
+            wp_redirect( $this->primary_site . '/?forcelogout=true&source=' . $this->secondary_site );
+        }
+        $this->clear_auth_cookies();
+        wp_logout();
+        wp_redirect( home_url() );
+        exit;
     }
 
     public function display_logout_button() {
         if ( is_user_logged_in() ) {
-            echo '<div style="position: relative; top: 0; right: 0; background: #000; color: #fff; padding: 10px;"><a href="' . $this->primary_site . '/?forcelogout=true&source=' . $this->secondary_site . '">Logout</a></div>';
+            
+            if ( get_site_url() === $this->primary_site ) {
+                echo '<div style="position: relative; top: 0; right: 0; background: #000; color: #fff; padding: 10px;"><a href="' . $this->secondary_site . '/?forcelogout=true&source=' . $this->primary_site . '">Logout</a></div>';
+            } else {
+                echo '<div style="position: relative; top: 0; right: 0; background: #000; color: #fff; padding: 10px;"><a href="' . $this->primary_site . '/?forcelogout=true&source=' . $this->secondary_site . '">Logout</a></div>';
+            }
+            
+            
+            
             echo '<div style="position: relative; top: 0; right: 0; background: #000; color: #fff; padding: 10px;"><a href="' . $this->server_protocol . $_SERVER['HTTP_HOST'] . '/?clear_cookies=true' .'">Clear Cookies</a></div>';
         }
     }
@@ -176,6 +207,16 @@ class WP_Multisite_Internal_SSO {
     private function handle_primary_site_logic() {
 
         if ( isset($_GET["forcelogout"]) && $_GET["forcelogout"] == 'true' ) {
+
+                if ( ! is_user_logged_in() ) {
+                    $this->debug_message( 'User not logged in on primary site. Cannot log them out.' );
+                    if ( isset( $_GET['source'] ) ) {
+                        $this->debug_message( 'Redirecting to ' . $_GET['source'] );
+                        wp_redirect( esc_url_raw( $_GET['source'] ) );
+                        exit;
+                    }
+                    return;
+                }
 
                 $this->debug_message( 'Logging out user from all sites.' );
 
