@@ -1,0 +1,43 @@
+/* assets/css/wpmis-sso.css */
+
+.wpmis-sso-status {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: #000;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    z-index: 9999;
+    font-size: 14px;
+}
+
+.wpmis-sso-status.logged-in {
+    background-color: #28a745; /* Green for logged in */
+}
+
+.wpmis-sso-status.not-logged-in {
+    background-color: #dc3545; /* Red for not logged in */
+}
+
+.wpmis-sso-actions {
+    position: fixed;
+    top: 50px;
+    right: 10px;
+    background: #fff;
+    color: #000;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    z-index: 9999;
+    font-size: 14px;
+}
+
+.wpmis-sso-actions a {
+    color: #0073aa;
+    text-decoration: none;
+}
+
+.wpmis-sso-actions a:hover {
+    text-decoration: underline;
+}
