@@ -40,12 +40,13 @@ class WP_Multisite_Internal_SSO {
             return;
         }
 
-        if ( $this->user_exists_on_primary_site() ) {
-            $this->debug_message( 'User exists on primary site. ' . get_site_url() );
-        } else {
-            $this->debug_message( 'User does not exist on primary site. Looking at site: ' . get_site_url() );
-            return;
-        }
+        // if ( $this->user_exists_on_primary_site() ) {
+        //     $this->debug_message( 'User exists on primary site. ' . get_site_url() );
+        // } else {
+        //     $this->debug_message( 'User does not exist on primary site. Looking at site: ' . get_site_url() );
+        //     return;
+        // }
+
         $current_host = $this->server_protocol . $_SERVER['HTTP_HOST'];
 
         if ( $current_host === $this->secondary_site ) {
@@ -162,8 +163,8 @@ class WP_Multisite_Internal_SSO {
             if ( ! isset( $_COOKIE[ $this->redirect_cookie_name ] ) ) {
                 setcookie( $this->redirect_cookie_name, '1', time() + 300, COOKIEPATH, COOKIE_DOMAIN );
                 $this->debug_message( 'Redirecting to primary site for SSO.' );
-                $redirect_url = 'https://' . $this->primary_site . add_query_arg( 'wpmssso_redirect', 1, '/' );
-                $redirect_url = add_query_arg( 'wpmssso_return', urlencode( 'https://' . $this->secondary_site . '/' ), $redirect_url );
+                $redirect_url = $this->primary_site . add_query_arg( 'wpmssso_redirect', 1, '/' );
+                $redirect_url = add_query_arg( 'wpmssso_return', urlencode( $this->secondary_site . '/' ), $redirect_url );
                 wp_redirect( $redirect_url );
                 exit;
             } else {
@@ -233,7 +234,7 @@ class WP_Multisite_Internal_SSO {
                 }
             } else {
                 $this->debug_message( 'User not logged in on primary site. Cannot proceed with SSO.' );
-                wp_redirect( 'https://' . $this->secondary_site );
+                wp_redirect( $this->secondary_site );
             }
         }
     }
