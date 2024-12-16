@@ -88,10 +88,13 @@ class WP_Multisite_Internal_SSO {
     private function register_hooks() {
         add_action( 'init', array( $this, 'init_action' ), 1 );
         add_action( 'template_redirect', array( $this, 'check_sso' ) );
-        add_action( 'wp_body_open', array( $this, 'display_user_status' ) );
         add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
         add_action( 'admin_init', array( $this, 'register_settings' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
+
+        if ( WP_DEBUG ) {
+            add_action( 'wp_body_open', array( $this, 'display_user_status' ) );
+        }
     }
 
     /**
@@ -147,6 +150,8 @@ class WP_Multisite_Internal_SSO {
     public function display_user_status() {
         if ( ! is_user_logged_in() ) {
             echo '<div class="wpmis-sso-status not-logged-in">' . esc_html__( 'Not logged in - ', 'wp-multisite-internal-sso' ) . esc_url( get_site_url() ) . '</div>';
+            echo ' | ';
+            echo '<a href="' . esc_url( $this->get_clear_cookies_url() ) . '">' . esc_html__( 'Clear Cookies', 'wp-multisite-internal-sso' ) . '</a>';
             return;
         }
 
