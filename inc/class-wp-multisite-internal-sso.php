@@ -91,9 +91,25 @@ class WP_Multisite_Internal_SSO {
         add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
         add_action( 'admin_init', array( $this, 'register_settings' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
+        add_filter( 'login_redirect', array( $this, 'wpmis_sso_login_redirect' ), 10, 3 );
 
         if ( WP_DEBUG ) {
             add_action( 'wp_body_open', array( $this, 'display_user_status' ) );
+        }
+    }
+
+    public function wpmis_sso_login_redirect($redirect_to, $request, $user) {
+        //is there a user to check?
+        if (isset($user->roles) && is_array($user->roles)) {
+            //check for admins
+            if (in_array('administrator', $user->roles)) {
+                // redirect them to the default place
+                return home_url('/wp-admin/');
+            } else {
+                return home_url();
+            }
+        } else {
+            return $redirect_to;
         }
     }
 
@@ -148,10 +164,13 @@ class WP_Multisite_Internal_SSO {
      * Display user login status and action buttons.
      */
     public function display_user_status() {
+
+        $clear_cookies_button = '<button onclick="document.cookie = \'wpmssso_redirect_attempt=;expires=Thu, 01 Jan 1970 00:00:00 GMT\';">' . esc_html__( 'Clear Cookies', 'wp-multisite-internal-sso' ) . '</button>';
+
         if ( ! is_user_logged_in() ) {
             echo '<div class="wpmis-sso-status not-logged-in">' . esc_html__( 'Not logged in - ', 'wp-multisite-internal-sso' ) . esc_url( get_site_url() ) . '</div>';
             echo ' | ';
-            echo '<a href="' . esc_url( $this->get_clear_cookies_url() ) . '">' . esc_html__( 'Clear Cookies', 'wp-multisite-internal-sso' ) . '</a>';
+            echo $clear_cookies_button;
             return;
         }
 
@@ -161,11 +180,11 @@ class WP_Multisite_Internal_SSO {
         echo '<div class="wpmis-sso-actions">';
         echo '<a href="' . esc_url( $this->get_logout_url() ) . '">' . esc_html__( 'Logout', 'wp-multisite-internal-sso' ) . '</a>';
         echo ' | ';
-        echo '<a href="' . esc_url( $this->get_clear_cookies_url() ) . '">' . esc_html__( 'Clear Cookies', 'wp-multisite-internal-sso' ) . '</a>';
+        echo $clear_cookies_button;
         echo '</div>';
 
         // Enqueue CSS for styling
-        wp_enqueue_style( 'wpmis-sso-styles', WPMIS_SSO_PLUGIN_URL . 'assets/css/wpmis-sso.css', array(), '0.1.0' );
+        wp_enqueue_style( 'wpmis-sso-styles', WPMIS_SSO_PLUGIN_URL . 'assets/css/wpmis-sso.css', array(), WPMIS_SSO_PLUGIN_VERSION );
     }
 
     /**
@@ -176,7 +195,7 @@ class WP_Multisite_Internal_SSO {
             return;
         }
 
-        wp_enqueue_script( 'wpmis-sso-admin-js', WPMIS_SSO_PLUGIN_URL . 'assets/js/wpmis-sso-admin.js', array(), '0.1.0', true );
+        wp_enqueue_script( 'wpmis-sso-admin-js', WPMIS_SSO_PLUGIN_URL . 'assets/js/wpmis-sso-admin.js', array(), WPMIS_SSO_PLUGIN_VERSION, true );
     }
 
     /**
@@ -552,7 +571,7 @@ class WP_Multisite_Internal_SSO {
         setcookie( SECURE_AUTH_COOKIE, '', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN, $this->secure_cookies, true );
         setcookie( 'wordpress_logged_in_' . COOKIEHASH, '', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN, $this->secure_cookies, true );
         setcookie( 'wordpress_logged_in_' . COOKIEHASH, '', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN, $this->secure_cookies, true );
-        setcookie( $this->redirect_cookie_name, '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, $this->secure_cookies, true );
+        setcookie( $this->redirect_cookie_name, '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, $this->secure_cookies, false );
 
         $this->debug_message( __( 'Authentication cookies cleared.', 'wp-multisite-internal-sso' ) );
 
@@ -635,7 +654,7 @@ class WP_Multisite_Internal_SSO {
      * Set redirect cookie.
      */
     private function set_redirect_cookie() {
-        setcookie( $this->redirect_cookie_name, '1', time() + 300, COOKIEPATH, COOKIE_DOMAIN, $this->secure_cookies, true );
+        setcookie( $this->redirect_cookie_name, '1', time() + 300, COOKIEPATH, COOKIE_DOMAIN, $this->secure_cookies, false );
         $this->debug_message( __( 'Redirect cookie set.', 'wp-multisite-internal-sso' ) );
     }
 
@@ -643,7 +662,7 @@ class WP_Multisite_Internal_SSO {
      * Clear redirect cookie.
      */
     private function clear_redirect_cookie() {
-        setcookie( $this->redirect_cookie_name, '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, $this->secure_cookies, true );
+        setcookie( $this->redirect_cookie_name, '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, $this->secure_cookies, false );
         $this->debug_message( __( 'Redirect cookie cleared.', 'wp-multisite-internal-sso' ) );
     }
 
