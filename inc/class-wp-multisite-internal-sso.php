@@ -78,8 +78,9 @@ class WP_Multisite_Internal_SSO {
         $this->token_expiration   = isset( $settings['token_expiration'] ) ? absint( $settings['token_expiration'] ) : 300; // Default 5 minutes
         $this->secure_cookies     = isset( $settings['secure_cookies'] ) ? boolval( $settings['secure_cookies'] ) : is_ssl();
     
-        // add slash to end of all secondary site urls, big fix
+        // ensure all sites have trailing slash
         $this->secondary_sites = array_map( 'trailingslashit', $this->secondary_sites );
+        $this->primary_site = trailingslashit( $this->primary_site );
     }
 
     /**
