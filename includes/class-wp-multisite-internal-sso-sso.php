@@ -94,35 +94,48 @@ class WP_Multisite_Internal_SSO_SSO {
                 exit;
             }
         }
+        if ( isset( $_GET['wpmssso_user'], $_GET['wpmssso_token'], $_GET['wpmssso_time'] ) ) {
+            $this->utils->debug_message( __( 'Received SSO token on primary site.', 'wp-multisite-internal-sso' ) );
+            $this->auto_login_user($_GET['wpmssso_user'], $_GET['wpmssso_token'], $_GET['wpmssso_time'] );
+        }
     }
 
     /**
      * Redirect user with auto login payload.
      */
     private function redirect_user_with_auto_login_payload($user, $return_url) {
-        $user_login   = $user->user_login;
-        $return_url   = esc_url_raw( wp_unslash( $return_url ) );
-
         if ( ! empty( $return_url ) ) {
-            $time  = time();
-            $token = $this->generate_sso_token( $user_login, $time );
-
-            $redirect_back = add_query_arg(
-                array(
-                    'wpmssso_user'  => rawurlencode( $user_login ),
-                    'wpmssso_token' => rawurlencode( $token ),
-                    'wpmssso_time'  => absint( $time ),
-                ),
-                $return_url
-            );
-
             $this->utils->debug_message( __( 'Sending token to secondary site for user', 'wp-multisite-internal-sso' ) . ' ' . $user_login );
-
-            wp_redirect( $redirect_back );
+            wp_redirect( $this->get_auto_login_url_with_payload($user->user_login, time(), $return_url) );
             exit;
         } else {
             $this->utils->debug_message( __( 'No return URL found for SSO.', 'wp-multisite-internal-sso' ) );
         }
+    }
+
+    /**
+     * Generate auto login URL with payload.
+     *
+     * @param string $user_login User login name.
+     * @param int    $time       Timestamp.
+     * @return string Auto login URL.
+     */
+    public function get_auto_login_url_with_payload($user_login, $time, $return_url) {
+
+        if ( ! $user_login ) {
+            $this->utils->debug_message( __( 'User login name not provided (get_auto_login_url_with_payload) .', 'wp-multisite-internal-sso' ) );
+            return;
+        }
+
+        $this->utils->debug_message( __( 'Generating auto login URL with payload.', 'wp-multisite-internal-sso' ) );
+        return add_query_arg(
+            array(
+                'wpmssso_user'  => rawurlencode( $user_login ),
+                'wpmssso_token' => rawurlencode( $this->generate_sso_token( $user_login, $time ) ),
+                'wpmssso_time'  => absint( $time ),
+            ),
+            esc_url_raw( wp_unslash( $return_url ) )
+        );
     }
 
     /**
@@ -161,6 +174,8 @@ class WP_Multisite_Internal_SSO_SSO {
         $user_login = sanitize_user( wp_unslash( $wpmssso_user ), true );
         $token      = sanitize_text_field( wp_unslash( $wpmssso_token ) );
         $time       = absint( $wpmssso_time );
+
+        $this->utils->debug_message( __( 'Attempting to auto login user on secondary site. ' . $user_login . ' ' . $time . ' ' . $token, 'wp-multisite-internal-sso' ) . ' ' . $user_login );
 
         if ( $this->verify_sso_token( $user_login, $token, $time ) ) {
             // Log the user in

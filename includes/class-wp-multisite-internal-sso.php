@@ -96,5 +96,9 @@ class WP_Multisite_Internal_SSO {
         $this->utils->debug_message( __( 'Init action triggered.', 'wp-multisite-internal-sso' ) );
         $this->utils->debug_message( __( 'Primary site:', 'wp-multisite-internal-sso' ) . ' ' . $this->settings->get_primary_site() );
         $this->utils->debug_message( __( 'Secondary sites:', 'wp-multisite-internal-sso' ) . ' ' . implode( ', ', $this->settings->get_secondary_sites() ) );
+    
+        if ( is_user_logged_in() && $this->settings->get_primary_site_id() !== get_current_blog_id() ) {
+            echo '<a href="'.$this->sso->get_auto_login_url_with_payload( wp_get_current_user()->user_login, time(), $this->settings->get_primary_site() ) . '">Auto Log in to primary site</a>';  // This is the line that is causing the error
+        }
     }
 }
