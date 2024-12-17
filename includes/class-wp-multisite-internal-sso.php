@@ -75,7 +75,6 @@ class WP_Multisite_Internal_SSO {
      * Initialize WordPress hooks.
      */
     private function init_hooks() {
-        add_action( 'init', array( $this, 'init_action' ), 1 );
         add_action( 'template_redirect', array( $this->sso, 'check_sso' ) );
         add_action( 'admin_menu', array( $this->admin, 'add_admin_menu' ) );
         add_action( 'admin_init', array( $this->settings, 'register_settings' ) );
@@ -83,6 +82,7 @@ class WP_Multisite_Internal_SSO {
         add_filter( 'login_redirect', array( $this->sso, 'wpmis_sso_login_redirect' ), 10, 3 );
 
         if ( WP_DEBUG ) {
+            add_action( 'init', array( $this, 'init_logging' ), 1 );
             add_action( 'wp_body_open', array( $this->admin, 'display_user_status' ) );
         }
 
@@ -92,11 +92,9 @@ class WP_Multisite_Internal_SSO {
     /**
      * Initialize actions on 'init' hook.
      */
-    public function init_action() {
+    public function init_logging() {
         $this->utils->debug_message( __( 'Init action triggered.', 'wp-multisite-internal-sso' ) );
         $this->utils->debug_message( __( 'Primary site:', 'wp-multisite-internal-sso' ) . ' ' . $this->settings->get_primary_site() );
         $this->utils->debug_message( __( 'Secondary sites:', 'wp-multisite-internal-sso' ) . ' ' . implode( ', ', $this->settings->get_secondary_sites() ) );
-
-        // Additional initialization if needed
     }
 }
