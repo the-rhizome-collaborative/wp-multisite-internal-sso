@@ -245,6 +245,23 @@ class WP_Multisite_Internal_SSO_Settings {
     }
 
     /**
+     * Get secondary site IDs.
+     *
+     * @return array
+     */
+    public function get_secondary_sites_ids() {
+        $sites = get_sites();
+        $secondary_sites = $this->get_secondary_sites();
+        $secondary_site_ids = array();
+        foreach ( $sites as $site ) {
+            if ( in_array( trailingslashit( $site->siteurl ), $secondary_sites, true ) ) {
+                $secondary_site_ids[] = $site->blog_id;
+            }
+        }
+        return $secondary_site_ids;
+    }
+
+    /**
      * Get redirect cookie name.
      *
      * @return string

@@ -41,3 +41,7 @@
 .wpmis-sso-actions a:hover {
     text-decoration: underline;
 }
+
+.wpmis-sso-actions span.divider:last-of-type {
+    display: none;
+}

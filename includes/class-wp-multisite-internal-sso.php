@@ -46,12 +46,15 @@ class WP_Multisite_Internal_SSO {
      */
     private $utils;
 
+    private $isLoginPage = false;
+
     /**
      * Constructor.
      */
     public function __construct() {
         $this->load_dependencies();
         $this->init_hooks();
+        $this->isLoginPage = in_array($GLOBALS['pagenow'], array('wp-login.php', 'wp-register.php'));
     }
 
     /**
@@ -68,7 +71,7 @@ class WP_Multisite_Internal_SSO {
         $this->settings = new WP_Multisite_Internal_SSO_Settings( $this->utils );
         $this->sso      = new WP_Multisite_Internal_SSO_SSO( $this->settings, $this->utils );
         $this->auth     = new WP_Multisite_Internal_SSO_Auth( $this->settings, $this->utils );
-        $this->admin    = new WP_Multisite_Internal_SSO_Admin( $this->settings, $this->utils );
+        $this->admin    = new WP_Multisite_Internal_SSO_Admin( $this->settings, $this->sso, $this->utils );
     }
 
     /**
@@ -78,27 +81,37 @@ class WP_Multisite_Internal_SSO {
         add_action( 'template_redirect', array( $this->sso, 'check_sso' ) );
         add_action( 'admin_menu', array( $this->admin, 'add_admin_menu' ) );
         add_action( 'admin_init', array( $this->settings, 'register_settings' ) );
-        add_action( 'admin_enqueue_scripts', array( $this->admin, 'enqueue_admin_scripts' ) );
+        add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
+        add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
         add_filter( 'login_redirect', array( $this->sso, 'wpmis_sso_login_redirect' ), 10, 3 );
+        add_action( 'init', array( $this->auth, 'handle_actions' ) );
 
         if ( WP_DEBUG ) {
+            add_action( 'admin_enqueue_scripts', array( $this->admin, 'enqueue_admin_scripts' ) );
             add_action( 'init', array( $this, 'init_logging' ), 1 );
             add_action( 'wp_body_open', array( $this->admin, 'display_user_status' ) );
         }
+    }
 
-        add_action( 'init', array( $this->auth, 'handle_actions' ) );
+    /**
+     * Enqueue plugin styles.
+     */
+    public function enqueue_styles() {
+        wp_enqueue_style( 'wpmis-sso-styles', WPMIS_SSO_PLUGIN_URL . 'assets/css/wpmis-sso.css', array(), WPMIS_SSO_PLUGIN_VERSION );
     }
 
     /**
      * Initialize actions on 'init' hook.
      */
     public function init_logging() {
-        $this->utils->debug_message( __( 'Init action triggered.', 'wp-multisite-internal-sso' ) );
-        $this->utils->debug_message( __( 'Primary site:', 'wp-multisite-internal-sso' ) . ' ' . $this->settings->get_primary_site() );
-        $this->utils->debug_message( __( 'Secondary sites:', 'wp-multisite-internal-sso' ) . ' ' . implode( ', ', $this->settings->get_secondary_sites() ) );
-    
-        if ( is_user_logged_in() && $this->settings->get_primary_site_id() !== get_current_blog_id() ) {
-            echo '<a href="'.$this->sso->get_auto_login_url_with_payload( wp_get_current_user()->user_login, time(), $this->settings->get_primary_site() ) . '">Auto Log in to primary site</a>';  // This is the line that is causing the error
+        $this->utils->debug_message( __( ' --- ', 'wp-multisite-internal-sso' ) );
+        $this->utils->debug_message( __( ' -!- Init action triggered. -!- ', 'wp-multisite-internal-sso' ) );
+        $this->utils->debug_message( __( 'Current site:', 'wp-multisite-internal-sso' ) . ' ' . get_site_url() );
+        // $this->utils->debug_message( __( 'Primary site:', 'wp-multisite-internal-sso' ) . ' ' . $this->settings->get_primary_site() );
+        // $this->utils->debug_message( __( 'Secondary sites:', 'wp-multisite-internal-sso' ) . ' ' . implode( ', ', $this->settings->get_secondary_sites() ) );
+
+        if ($this->isLoginPage) {
+            $this->utils->debug_message( __( 'ON THE LOGIN PAGE', 'wp-multisite-internal-sso' ) );
         }
     }
 }

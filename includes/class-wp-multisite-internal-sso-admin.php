@@ -19,6 +19,13 @@ class WP_Multisite_Internal_SSO_Admin {
     private $settings;
 
     /**
+     * SSO Handler.
+     *
+     * @var WP_Multisite_Internal_SSO_SSO
+     */
+    private $sso;
+
+    /**
      * Utility Functions.
      *
      * @var WP_Multisite_Internal_SSO_Utils
@@ -31,8 +38,9 @@ class WP_Multisite_Internal_SSO_Admin {
      * @param WP_Multisite_Internal_SSO_Settings $settings Settings manager instance.
      * @param WP_Multisite_Internal_SSO_Utils    $utils    Utility functions instance.
      */
-    public function __construct( $settings, $utils ) {
+    public function __construct( $settings, $sso, $utils ) {
         $this->settings = $settings;
+        $this->sso      = $sso;
         $this->utils    = $utils;
     }
 
@@ -73,22 +81,33 @@ class WP_Multisite_Internal_SSO_Admin {
 
         if ( ! is_user_logged_in() ) {
             echo '<div class="wpmis-sso-status not-logged-in">' . esc_html__( 'Not logged in - ', 'wp-multisite-internal-sso' ) . esc_url( get_site_url() ) . '</div>';
-            echo ' | ';
-            echo $clear_cookies_button;
-            return;
+        } else {
+            echo '<div class="wpmis-sso-status logged-in">' . esc_html__( 'Logged in - ', 'wp-multisite-internal-sso' ) . esc_url( get_site_url() ) . '</div>';
+
         }
-
-        echo '<div class="wpmis-sso-status logged-in">' . esc_html__( 'Logged in - ', 'wp-multisite-internal-sso' ) . esc_url( get_site_url() ) . '</div>';
-
         // Display logout button
         echo '<div class="wpmis-sso-actions">';
-        echo '<a href="' . esc_url( $this->get_logout_url() ) . '">' . esc_html__( 'Logout', 'wp-multisite-internal-sso' ) . '</a>';
-        echo ' | ';
-        echo $clear_cookies_button;
-        echo '</div>';
+        if ( is_user_logged_in() ) {
+            echo '<a href="' . esc_url( $this->get_logout_url() ) . '">' . esc_html__( 'Logout On All Sites', 'wp-multisite-internal-sso' ) . '</a>';
+            echo '<span class="divider"> | </span>';
+        } else {
+            echo '<a href="' . esc_url( wp_login_url() ) . '">' . esc_html__( 'Login', 'wp-multisite-internal-sso' ) . '</a>';
+            echo '<span class="divider"> | </span>';
+        }
+            
+        if ( is_user_logged_in() && $this->settings->get_primary_site_id() !== get_current_blog_id() ) {
+            echo '<a href="'.$this->sso->get_auto_login_url_with_payload( wp_get_current_user()->user_login, time(), $this->settings->get_primary_site() ) . '">Auto Log in to primary site</a>';  // This is the line that is causing the error
+            echo '<span class="divider"> | </span>';
+        }
 
-        // Enqueue CSS for styling
-        wp_enqueue_style( 'wpmis-sso-styles', WPMIS_SSO_PLUGIN_URL . 'assets/css/wpmis-sso.css', array(), WPMIS_SSO_PLUGIN_VERSION );
+        // if redirect cookie is set
+        if ( isset( $_COOKIE[ $this->settings->get_redirect_cookie_name() ] ) ) {
+            echo 'SSO Login Attempted - ';
+            echo $clear_cookies_button;
+            echo '<span class="divider"> | </span>';
+        }
+
+        echo '</div>';
     }
 
     /**
