@@ -30,6 +30,38 @@ function wpmis_sso_init() {
     $GLOBALS['wp_multisite_internal_sso'] = new WP_Multisite_Internal_SSO();
 }
 
-if ( is_multisite() && ! isset( $_GET['wpmisso_ignore'] ) ) {
+if ( is_multisite() && wpmisso_allow_request() && ! isset( $_GET['wpmisso_ignore'] ) ) {
     add_action( 'plugins_loaded', 'wpmis_sso_init' );
+}
+
+function wpmisso_allow_request() {
+
+    error_log( 'WPMIS SSO: URI: ' . $_SERVER['REQUEST_URI'] . "\n", 3, WP_CONTENT_DIR . '/sso-debug.log' );
+
+    $file_requests_to_ignore = [
+        '*.ico',
+        'robots.txt',
+        'sitemap.xml',
+        '*.png',
+        '*.jpg',
+        '*.jpeg',
+        '*.gif',
+        '*.css',
+        '*.js',
+        '*.woff',
+        '*.woff2',
+        '*.ttf',
+        '*.svg',
+        '*.eot',
+    ];
+
+    foreach ($file_requests_to_ignore as $ignored_file) {
+        $pattern = '/' . str_replace(['*', '.'], ['.*', '\.'], $ignored_file) . '$/';
+        if (preg_match($pattern, $_SERVER['REQUEST_URI'])) {
+            error_log( "WPMIS SSO: " . 'Skipping SSO due to request of ' . $file . 'URI: ' . $_SERVER['REQUEST_URI'] . "\n", 3, WP_CONTENT_DIR . '/sso-debug.log' );
+            return false;
+        }
+    }
+
+    return true;
 }
