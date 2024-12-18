@@ -3,7 +3,7 @@
  * Plugin Name: WP Multisite Internal SSO
  * Plugin URI:  https://github.com/9ete/wp-multisite-internal-sso
  * Description: Enables automatic login (SSO) for users from one multisite installation to another.
- * Version:     0.1.7
+ * Version:     0.1.8
  * Author:      9ete
  * Author URI:  https://petelower.com
  * Network:     true
@@ -37,6 +37,9 @@ function wpmisso_allow_request() {
         '*.ico',
         'robots.txt',
         'sitemap.xml',
+        'wp-cron.php',
+        'admin-ajax.php',
+        'wp-json',
         '*.png',
         '*.jpg',
         '*.jpeg',
