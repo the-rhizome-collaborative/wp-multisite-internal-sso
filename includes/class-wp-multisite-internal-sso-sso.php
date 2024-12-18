@@ -45,14 +45,6 @@ class WP_Multisite_Internal_SSO_SSO {
      * @return string Redirect URL.
      */
     public function wpmis_sso_login_redirect( $redirect_to, $request, $user ) {
-        // $this->utils->debug_message( 'User: ' . $user->ID );
-        // if ($user) {
-        //     $this->utils->debug_message( 'User: ' . $user->user_login );
-        //     $this->utils->debug_message( 'Password: ' . $user->user_pass );
-        // } else {
-        //     $this->utils->debug_message( 'No user info presenet: ' . $request );
-        // }
-
         if ( isset( $user->roles ) && is_array( $user->roles ) ) {
         
             $this->utils->debug_message( 'wpmis_sso_login_redirect: ' );
@@ -61,19 +53,12 @@ class WP_Multisite_Internal_SSO_SSO {
             $this->utils->debug_message( 'User: ' . $user->user_login );
             $this->utils->debug_message( 'Password: ' . $user->user_pass );
 
-            // if not on the primary site
             if ( $this->settings->get_primary_site_id() !== get_current_blog_id() ) {
-
                 if ( ! is_user_member_of_blog( $user->ID, $this->settings->get_primary_site_id() ) ) {
                     $this->utils->debug_message( 'User not a member of primary site.' );
                 } else {
                     $this->utils->debug_message( 'User is a member of primary site redirecting and logging in...' );
                     $this->clear_redirect_cookie();
-                    // $redirect_url =  $this->get_auto_login_url_with_payload( $user->user_login, time(), $this->settings->get_primary_site() );
-                    
-                    // $this->utils->debug_message( 'Redirecting to: ' . $redirect_url );
-                    // wp_redirect( $redirect_url );
-
                     $this->redirect_user_with_auto_login_payload($user, $this->settings->get_primary_site(), $this->settings->get_secondary_sites()[0]);
                 }
             } else {

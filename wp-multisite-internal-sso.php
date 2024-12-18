@@ -3,7 +3,7 @@
  * Plugin Name: WP Multisite Internal SSO
  * Plugin URI:  https://github.com/9ete/wp-multisite-internal-sso
  * Description: Enables automatic login (SSO) for users from one multisite installation to another.
- * Version:     0.1.6
+ * Version:     0.1.7
  * Author:      9ete
  * Author URI:  https://petelower.com
  * Network:     true
@@ -14,11 +14,6 @@
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
-
-// TODO: add ability to set redirect url after logout and login
-// TODO: on secondary site login, first check if the user exists on the primary site, if so, redirect them to that login page and pass the credentials (auto log them in)
-// TODO: move config from individual site settings to multisite settings menu
-// TODO: add toggle for dev debugging
 
 define( 'WPMIS_SSO_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'WPMIS_SSO_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
