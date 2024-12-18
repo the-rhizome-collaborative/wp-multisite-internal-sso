@@ -36,7 +36,7 @@ if ( is_multisite() && wpmisso_allow_request() && ! isset( $_GET['wpmisso_ignore
 
 function wpmisso_allow_request() {
 
-    error_log( 'WPMIS SSO: URI: ' . $_SERVER['REQUEST_URI'] . "\n", 3, WP_CONTENT_DIR . '/sso-debug.log' );
+    error_log("\n\n" . 'REQUEST: ' . $_SERVER['REQUEST_URI'] . "\n\n", 3, WP_CONTENT_DIR . '/sso-debug.log' );
 
     $file_requests_to_ignore = [
         '*.ico',

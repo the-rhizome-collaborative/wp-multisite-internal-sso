@@ -48,8 +48,12 @@ class WP_Multisite_Internal_SSO_SSO {
         
         $this->utils->debug_message( 'Redirect to: ' . $redirect_to );
         $this->utils->debug_message( 'Request: ' . $request );
-        $this->utils->debug_message( 'User: ' . $user->user_login );
-        $this->utils->debug_message( 'Password: ' . $user->user_pass );
+        // if ($user) {
+        //     $this->utils->debug_message( 'User: ' . $user->user_login );
+        //     $this->utils->debug_message( 'Password: ' . $user->user_pass );
+        // } else {
+        //     $this->utils->debug_message( 'No user info presenet: ' . $request );
+        // }
 
         if ( isset( $user->roles ) && is_array( $user->roles ) ) {
 
