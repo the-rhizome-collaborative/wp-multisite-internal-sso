@@ -100,7 +100,7 @@ class WP_Multisite_Internal_SSO_Auth {
             }
 
             wp_logout();
-            wp_redirect( home_url() );
+            $this-utils->wpmis_wp_redirect(home_url());
             exit;
         }
     }
@@ -138,11 +138,11 @@ class WP_Multisite_Internal_SSO_Auth {
 
         if ( isset( $_GET['source'] ) && $this->utils->is_valid_site_url( $_GET['source'], $this->settings->get_secondary_sites() ) ) {
             $this->utils->debug_message( __( 'Redirecting to source site.', 'wp-multisite-internal-sso' ) . ' ' . esc_url_raw( $_GET['source'] ) );
-            wp_redirect( esc_url_raw( $_GET['source'] ) );
+            $this->utils->wpmis_wp_redirect( esc_url_raw( $_GET['source'] ) );
             exit;
         } else {
             $this->utils->debug_message( __( 'Redirecting to home URL.', 'wp-multisite-internal-sso' ) );
-            wp_redirect( home_url() );
+            $this->utils->wpmis_wp_redirect( home_url() );
             exit;
         }
     }

@@ -114,7 +114,7 @@ class WP_Multisite_Internal_SSO_SSO {
                 $this->redirect_user_with_auto_login_payload(wp_get_current_user(), $_GET['wpmssso_return']);
             } else {
                 $this->utils->debug_message( __( 'User not logged in on primary site. Redirecting to secondary site.', 'wp-multisite-internal-sso' ) );
-                wp_redirect( $this->settings->get_secondary_sites()[0] );
+                $this->utils->wpmis_wp_redirect( $this->settings->get_secondary_sites()[0] );
                 exit;
             }
         }
@@ -143,7 +143,7 @@ class WP_Multisite_Internal_SSO_SSO {
 
         $this->utils->debug_message('Redirecting to ' . $redirect_url);
 
-        wp_redirect($redirect_url);
+        $this->utils->wpmis_wp_redirect($redirect_url);
         exit;
     }
 
@@ -230,7 +230,7 @@ class WP_Multisite_Internal_SSO_SSO {
             $this->utils->debug_message( __( 'Successfully logged in user on' . get_site_url() . ' ', 'wp-multisite-internal-sso' ) . ' ' . $user_login );
 
             if ( $return_url ) {
-                wp_redirect( $return_url );
+                $this->utils->wpmis_wp_redirect( $return_url );
                 exit;
             }
             wp_redirect( remove_query_arg( array( 'wpmssso_user', 'wpmssso_token', 'wpmssso_time' ) ) );

@@ -42,6 +42,11 @@ class WP_Multisite_Internal_SSO_Utils {
      * @param array  $params      Query parameters to add to the URL.
      */
     public function wpmis_wp_redirect( $redirect_to, $params = array() ) {;
+        
+        if ( ! empty( $params ) ) {
+            $params['wpmisso_request'] = '';
+        }
+        
         $redirect_url = add_query_arg( $params, $redirect_to );
         $this->debug_message( 'Redirecting to ' . $redirect_url );
         wp_redirect( $redirect_url );

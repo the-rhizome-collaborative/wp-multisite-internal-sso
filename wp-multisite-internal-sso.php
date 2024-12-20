@@ -3,7 +3,7 @@
  * Plugin Name: WP Multisite Internal SSO
  * Plugin URI:  https://github.com/9ete/wp-multisite-internal-sso
  * Description: Enables automatic login (SSO) for users from one multisite installation to another.
- * Version:     0.1.8
+ * Version:     0.1.9
  * Author:      9ete
  * Author URI:  https://petelower.com
  * Network:     true
@@ -64,12 +64,12 @@ function wpmisso_allow_request() {
     return true;
 }
 
-// add init hook to check for $_GET['wpmisso_request'] and if it exists either create a cookie with a value of one or increment the cookie value by one
-add_action( 'init', 'wpmisso_check_request' );
-function wpmisso_check_request() {
-    if ( isset( $_GET['wpmisso_request'] ) ) {
+add_action('init', 'wpmisso_redirect_cookie_count');
+function wpmisso_redirect_cookie_count()
+{
+    if (isset($_GET['wpmisso_request'])) {
         $cookie_name = 'wpmisso_request';
-        $cookie_value = isset( $_COOKIE[$cookie_name] ) ? $_COOKIE[$cookie_name] + 1 : 1;
-        setcookie( $cookie_name, $cookie_value, time() + 3600, '/', true );
+        $cookie_value = isset($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] + 1 : 1;
+        setcookie($cookie_name, $cookie_value, time() + 3600, '/', '', isset($_SERVER['HTTPS']), true);
     }
 }
