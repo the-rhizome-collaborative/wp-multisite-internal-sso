@@ -65,7 +65,6 @@ class WP_Multisite_Internal_SSO {
         require_once plugin_dir_path( __FILE__ ) . 'class-wp-multisite-internal-sso-sso.php';
         require_once plugin_dir_path( __FILE__ ) . 'class-wp-multisite-internal-sso-auth.php';
         require_once plugin_dir_path( __FILE__ ) . 'class-wp-multisite-internal-sso-admin.php';
-        require_once plugin_dir_path( __FILE__ ) . 'class-wp-multisite-internal-sso-utils.php';
 
         $this->utils    = new WP_Multisite_Internal_SSO_Utils();
         $this->settings = new WP_Multisite_Internal_SSO_Settings( $this->utils );

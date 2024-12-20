@@ -100,7 +100,7 @@ class WP_Multisite_Internal_SSO_Auth {
             }
 
             wp_logout();
-            $this-utils->wpmis_wp_redirect(home_url());
+            $this->utils->wpmis_wp_redirect(home_url());
             exit;
         }
     }

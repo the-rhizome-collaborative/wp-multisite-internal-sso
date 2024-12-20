@@ -16,9 +16,17 @@ class WP_Multisite_Internal_SSO_Utils {
      *
      * @param string $message Message to log.
      */
-    public function debug_message( $message ) {
+    public function debug_message( $message, $space_above = false ) {
         if ( WP_DEBUG && WP_DEBUG_LOG ) {
-            error_log( "WPMIS SSO: " . $message . "\n", 3, WP_CONTENT_DIR . '/sso-debug.log' );
+            $log_file = WP_CONTENT_DIR . '/sso-debug.log';
+            if ( is_writable( $log_file ) ) {
+                if ( $space_above ) {
+                    error_log( "\n\n", 3, $log_file );
+                }
+                error_log( "WPMIS SSO: " . $message . "\n", 3, $log_file );
+            } else {
+                error_log( "WPMIS SSO: Log file is not writable." );
+            }
         }
     }
 
@@ -46,7 +54,7 @@ class WP_Multisite_Internal_SSO_Utils {
         if ( ! empty( $params ) ) {
             $params['wpmisso_request'] = '';
         }
-        
+
         $redirect_url = add_query_arg( $params, $redirect_to );
         $this->debug_message( 'Redirecting to ' . $redirect_url );
         wp_redirect( $redirect_url );

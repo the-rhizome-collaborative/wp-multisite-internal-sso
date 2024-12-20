@@ -3,7 +3,7 @@
  * Plugin Name: WP Multisite Internal SSO
  * Plugin URI:  https://github.com/9ete/wp-multisite-internal-sso
  * Description: Enables automatic login (SSO) for users from one multisite installation to another.
- * Version:     0.1.9
+ * Version:     0.1.10
  * Author:      9ete
  * Author URI:  https://petelower.com
  * Network:     true
@@ -19,6 +19,7 @@ define( 'WPMIS_SSO_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'WPMIS_SSO_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WPMIS_SSO_PLUGIN_VERSION',  get_file_data(__FILE__, array('Version' => 'Version'))['Version'] );
 
+require_once WPMIS_SSO_PLUGIN_PATH . 'includes/class-wp-multisite-internal-sso-utils.php';
 require_once WPMIS_SSO_PLUGIN_PATH . 'includes/class-wp-multisite-internal-sso.php';
 
 function wpmis_sso_init() {
@@ -31,7 +32,9 @@ if ( is_multisite() && wpmisso_allow_request() && ! isset( $_GET['wpmisso_ignore
 
 function wpmisso_allow_request() {
 
-    error_log("\n\n" . 'REQUEST: ' . $_SERVER['REQUEST_URI'] . "\n\n", 3, WP_CONTENT_DIR . '/sso-debug.log' );
+    $utils = new WP_Multisite_Internal_SSO_Utils();
+    
+    $utils->debug_message('REQUEST: ' . $_SERVER['REQUEST_URI'] . "\n", true );
 
     $file_requests_to_ignore = [
         '*.ico',
@@ -56,7 +59,7 @@ function wpmisso_allow_request() {
     foreach ($file_requests_to_ignore as $ignored_file) {
         $pattern = '/' . str_replace(['*', '.'], ['.*', '\.'], $ignored_file) . '$/';
         if (preg_match($pattern, $_SERVER['REQUEST_URI'])) {
-            error_log( "WPMIS SSO: " . 'Skipping SSO due to request of ' . $ignored_file . 'URI: ' . $_SERVER['REQUEST_URI'] . "\n", 3, WP_CONTENT_DIR . '/sso-debug.log' );
+            $utils->debug_message( 'Skipping SSO due to request of ' . $ignored_file . ' - URI: ' . $_SERVER['REQUEST_URI'] . "\n" );
             return false;
         }
     }
