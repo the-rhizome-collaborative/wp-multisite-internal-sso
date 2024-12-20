@@ -54,6 +54,8 @@ class WP_Multisite_Internal_SSO_Auth {
                 }
                 $this->clear_auth_cookies();
             }
+        } elseif ( isset( $_GET['forcelogout'] ) ) {
+            $this->utils->wpmis_wp_redirect( add_query_arg( array( 'forcelogout' => 'true', '_wpnonce' => wp_create_nonce( 'wpmis_sso_logout' ) ) ) );
         }
     }
 
