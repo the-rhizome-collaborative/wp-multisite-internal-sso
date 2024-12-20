@@ -52,19 +52,26 @@ class WP_Multisite_Internal_SSO_SSO {
             $this->utils->debug_message( ' - Request: ' . $request );
             $this->utils->debug_message( 'User: ' . $user->user_login );
             $this->utils->debug_message( 'Password: ' . $user->user_pass );
-
+        
+            // Prevent redirect if SSO parameters are present
+            if ( isset($_GET['wpmssso_redirect']) || isset($_GET['wpmssso_user']) ) {
+                return $redirect_to; // Bypass SSO redirect
+            } else {
+                $this->utils->debug_message( 'No SSO parameters found, proceeding with login redirect.' );
+            }
+        
             if ( $this->settings->get_primary_site_id() !== get_current_blog_id() ) {
                 if ( ! is_user_member_of_blog( $user->ID, $this->settings->get_primary_site_id() ) ) {
                     $this->utils->debug_message( 'User not a member of primary site.' );
                 } else {
-                    $this->utils->debug_message( 'User is a member of primary site redirecting and logging in...' );
+                    // Redirect to primary site with auto-login payload
                     $this->clear_redirect_cookie();
                     $this->redirect_user_with_auto_login_payload($user, $this->settings->get_primary_site(), $this->settings->get_secondary_sites()[0]);
                 }
             } else {
                 $this->utils->debug_message( 'Primary site login successful, redirecting to home page.' );
             }
-
+    
             if ( in_array( 'administrator', $user->roles, true ) ) {
                 return admin_url();
             } else {
@@ -103,7 +110,8 @@ class WP_Multisite_Internal_SSO_SSO {
         $this->utils->debug_message( __( 'Running handle_primary_site_logic', 'wp-multisite-internal-sso' ) );
         if ( isset( $_GET['wpmssso_redirect'] ) && '1' === $_GET['wpmssso_redirect'] ) {
             if ( is_user_logged_in() ) {
-                $this->redirect_user_with_auto_login_payload(wp_get_current_user(), $_GET['wpmssso_return'], $this->settings->get_primary_site() );
+                $this->utils->debug_message( __( 'User logged in on primary site.', 'wp-multisite-internal-sso' ) );
+                $this->redirect_user_with_auto_login_payload(wp_get_current_user(), $_GET['wpmssso_return']);
             } else {
                 $this->utils->debug_message( __( 'User not logged in on primary site. Redirecting to secondary site.', 'wp-multisite-internal-sso' ) );
                 wp_redirect( $this->settings->get_secondary_sites()[0] );
@@ -120,18 +128,23 @@ class WP_Multisite_Internal_SSO_SSO {
      * Redirect user with auto login payload.
      */
     private function redirect_user_with_auto_login_payload($user, $dest_url, $return_url = false) {
-        $this->utils->debug_message( __( 'Redirecting user with auto login payload.', 'wp-multisite-internal-sso' ) );
-        $this->utils->debug_message( ' - User Login ' . $user->user_login );
-        $this->utils->debug_message( ' - Dest ' . $dest_url );
-        $this->utils->debug_message( ' - Return ' . $return_url );
+        $this->utils->debug_message('Redirecting user with auto login payload.');
+        $this->utils->debug_message(' - User Login: ' . $user->user_login);
+        $this->utils->debug_message(' - Destination: ' . $dest_url);
+        $this->utils->debug_message(' - Return URL: ' . $return_url);
 
-        if ( ! empty( $return_url ) ) {
-            $this->utils->debug_message( __( 'Sending token to secondary site for user', 'wp-multisite-internal-sso' ) . ' ' . $user->user_login . ' ' . $return_url );
-            wp_redirect( $this->get_auto_login_url_with_payload($user->user_login, time(), $dest_url, $return_url) );
-            exit;
-        } else {
-            $this->utils->debug_message( __( 'No return URL found for SSO.', 'wp-multisite-internal-sso' ) );
-        }
+        // if (!empty($return_url) && $this->utils->is_valid_site_url($return_url, $this->settings->get_secondary_sites())) {
+            $this->utils->debug_message('Sending token to ' . $dest_url . ' site for user ' . $user->user_login . ' with return URL ' . $return_url);
+            $redirect_url = $this->get_auto_login_url_with_payload($user->user_login, time(), $dest_url, $return_url);
+        // } else {
+        //     $this->utils->debug_message('No return URL. Sending token to ' . $dest_url . ' site for user ' . $user->user_login);
+        //     $redirect_url = $dest_url;
+        // }
+
+        $this->utils->debug_message('Redirecting to ' . $redirect_url);
+
+        wp_redirect($redirect_url);
+        exit;
     }
 
     /**
@@ -149,7 +162,7 @@ class WP_Multisite_Internal_SSO_SSO {
         }
 
         $this->utils->debug_message( __( 'Generating auto login URL with payload.', 'wp-multisite-internal-sso' ) );
-        return add_query_arg(
+        $url_payload = add_query_arg(
             array(
                 'wpmssso_user'  => rawurlencode( $user_login ),
                 'wpmssso_token' => rawurlencode( $this->generate_sso_token( $user_login, $time ) ),
@@ -158,6 +171,8 @@ class WP_Multisite_Internal_SSO_SSO {
             ),
             esc_url_raw( wp_unslash( $dest_url ) )
         );
+        $this->utils->debug_message( ' - URL Payload: ' . $url_payload );
+        return $url_payload;
     }
 
     /**
@@ -173,22 +188,23 @@ class WP_Multisite_Internal_SSO_SSO {
         if ( isset( $_GET['wpmssso_user'], $_GET['wpmssso_token'], $_GET['wpmssso_time'] ) ) {
             $this->auto_login_user($_GET['wpmssso_user'], $_GET['wpmssso_token'], $_GET['wpmssso_time'] );
         } else {
-            if ( ! isset( $_COOKIE[ $this->settings->get_redirect_cookie_name() ] ) ) {
-                $this->set_redirect_cookie();
-                $this->utils->debug_message( __( 'Redirecting to primary site for SSO.', 'wp-multisite-internal-sso' ) );
-                $redirect_url = add_query_arg(
-                    array(
-                        'wpmssso_redirect' => '1',
-                        'wpmssso_return'   => urlencode( $this->get_current_site_url() ),
-                    ),
-                    $this->settings->get_primary_site()
-                );
-                wp_redirect( $redirect_url );
-                exit;
-            } else {
+            if ( isset( $_COOKIE[ $this->settings->get_redirect_cookie_name() ] ) ) {
                 $this->utils->debug_message( __( 'Redirect already attempted on ' . get_site_url() . ' No further action.', 'wp-multisite-internal-sso' ) );
+            } else {
+                $this->initiate_sso_auth_redirect();
             }
         }
+    }
+
+    private function initiate_sso_auth_redirect() {
+        $this->set_redirect_cookie();
+        $this->utils->debug_message( __( 'Redirecting to primary site for SSO.', 'wp-multisite-internal-sso' ) );
+        $redirect_args = array(
+            'wpmssso_redirect' => '1',
+            'wpmssso_return'   => urlencode( $this->get_current_site_url() ),
+        );
+        $this->utils->wpmis_wp_redirect( $this->settings->get_primary_site(), $redirect_args );
+        exit;
     }
 
     /**

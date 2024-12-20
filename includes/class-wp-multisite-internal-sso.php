@@ -107,11 +107,11 @@ class WP_Multisite_Internal_SSO {
      * Initialize actions on 'init' hook.
      */
     public function init_logging() {
-        $this->utils->debug_message( __( ' --- ', 'wp-multisite-internal-sso' ) );
-        $this->utils->debug_message( __( ' -!- Init action triggered. -!- ', 'wp-multisite-internal-sso' ) );
-        $this->utils->debug_message( __( 'Current site:', 'wp-multisite-internal-sso' ) . ' ' . get_site_url() );
-        $this->utils->debug_message( __( 'Primary site:', 'wp-multisite-internal-sso' ) . ' ' . $this->settings->get_primary_site() );
-        $this->utils->debug_message( __( 'Secondary sites:', 'wp-multisite-internal-sso' ) . ' ' . implode( ', ', $this->settings->get_secondary_sites() ) );
+        // $this->utils->debug_message( __( ' --- ', 'wp-multisite-internal-sso' ) );
+        $this->utils->debug_message( __( ' -!- Init action triggered on : ', 'wp-multisite-internal-sso' ). ' ' . get_site_url() );
+        // $this->utils->debug_message( __( 'Current site:', 'wp-multisite-internal-sso' ) . ' ' . get_site_url() );
+        // $this->utils->debug_message( __( 'Primary site:', 'wp-multisite-internal-sso' ) . ' ' . $this->settings->get_primary_site() );
+        // $this->utils->debug_message( __( 'Secondary sites:', 'wp-multisite-internal-sso' ) . ' ' . implode( ', ', $this->settings->get_secondary_sites() ) );
 
         if ($this->isLoginPage) {
             $this->utils->debug_message( __( 'ON THE LOGIN PAGE', 'wp-multisite-internal-sso' ) );

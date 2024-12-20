@@ -34,4 +34,17 @@ class WP_Multisite_Internal_SSO_Utils {
         $secondary_sites = empty( $secondary_sites ) ? array() : $secondary_sites;
         return in_array( trailingslashit( $url ), $secondary_sites, true );
     }
+
+    /**
+     * Redirect to the given URL.
+     *
+     * @param string $redirect_to URL to redirect to.
+     * @param array  $params      Query parameters to add to the URL.
+     */
+    public function wpmis_wp_redirect( $redirect_to, $params = array() ) {;
+        $redirect_url = add_query_arg( $params, $redirect_to );
+        $this->debug_message( 'Redirecting to ' . $redirect_url );
+        wp_redirect( $redirect_url );
+        exit;
+    }
 }

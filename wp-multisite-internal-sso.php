@@ -56,10 +56,20 @@ function wpmisso_allow_request() {
     foreach ($file_requests_to_ignore as $ignored_file) {
         $pattern = '/' . str_replace(['*', '.'], ['.*', '\.'], $ignored_file) . '$/';
         if (preg_match($pattern, $_SERVER['REQUEST_URI'])) {
-            error_log( "WPMIS SSO: " . 'Skipping SSO due to request of ' . $file . 'URI: ' . $_SERVER['REQUEST_URI'] . "\n", 3, WP_CONTENT_DIR . '/sso-debug.log' );
+            error_log( "WPMIS SSO: " . 'Skipping SSO due to request of ' . $ignored_file . 'URI: ' . $_SERVER['REQUEST_URI'] . "\n", 3, WP_CONTENT_DIR . '/sso-debug.log' );
             return false;
         }
     }
 
     return true;
+}
+
+// add init hook to check for $_GET['wpmisso_request'] and if it exists either create a cookie with a value of one or increment the cookie value by one
+add_action( 'init', 'wpmisso_check_request' );
+function wpmisso_check_request() {
+    if ( isset( $_GET['wpmisso_request'] ) ) {
+        $cookie_name = 'wpmisso_request';
+        $cookie_value = isset( $_COOKIE[$cookie_name] ) ? $_COOKIE[$cookie_name] + 1 : 1;
+        setcookie( $cookie_name, $cookie_value, time() + 3600, '/', true );
+    }
 }
