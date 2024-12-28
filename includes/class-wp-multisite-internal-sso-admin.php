@@ -79,12 +79,16 @@ class WP_Multisite_Internal_SSO_Admin {
 
         $clear_cookies_button = '<button onclick="document.cookie = \'' . esc_js( $this->settings->get_redirect_cookie_name() ) . '=;expires=Thu, 01 Jan 1970 00:00:00 GMT\';">' . esc_html__( 'Clear Cookies', 'wp-multisite-internal-sso' ) . '</button>';
 
+        if ( isset( $_COOKIE[ $this->settings->get_redirect_cookie_name() ] ) ) {
+            echo '<div class="wpmis-sso-status redirect-attempt">' . esc_html__( 'Redirect Attempted - ', 'wp-multisite-internal-sso' ) . esc_html( $_COOKIE[ $this->settings->get_redirect_cookie_name() ] ) . '</div>';
+        }
+
         if ( ! is_user_logged_in() ) {
             echo '<div class="wpmis-sso-status not-logged-in">' . esc_html__( 'Not logged in - ', 'wp-multisite-internal-sso' ) . esc_url( get_site_url() ) . '</div>';
         } else {
             echo '<div class="wpmis-sso-status logged-in">' . esc_html__( 'Logged in - ', 'wp-multisite-internal-sso' ) . esc_url( get_site_url() ) . '</div>';
-
         }
+
         // Display logout button
         echo '<div class="wpmis-sso-actions">';
         if ( is_user_logged_in() ) {

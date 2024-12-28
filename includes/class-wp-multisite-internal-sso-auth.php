@@ -60,23 +60,30 @@ class WP_Multisite_Internal_SSO_Auth {
     }
 
     /**
-     * Log user in based on username.
+     * Log the user in.
      *
-     * @param string $user_login User login name.
+     * @param int|WP_User $user_identifier User ID (int) or WP_User object of the user to log in.
      */
-    public function log_user_in( $user_login ) {
-        $user = get_user_by( 'login', $user_login );
-        if ( $user && $user->exists() ) {
-            wp_set_auth_cookie( $user->ID, false, is_ssl() );
-            wp_set_current_user( $user->ID );
-
-            if ( is_user_logged_in() ) {
-                $this->utils->debug_message( __( 'User logged in successfully on secondary site.', 'wp-multisite-internal-sso' ) . ' ' . $user_login );
-            } else {
-                $this->utils->debug_message( __( 'Login failed for user.', 'wp-multisite-internal-sso' ) . ' ' . $user_login );
-            }
+    public function log_user_in( $user_identifier ) {
+        // Determine if $user_identifier is a WP_User object or a user ID
+        if ( is_object( $user_identifier ) && isset( $user_identifier->ID ) ) {
+            $user_id = intval( $user_identifier->ID );
+        } elseif ( is_numeric( $user_identifier ) ) {
+            $user_id = intval( $user_identifier );
         } else {
-            $this->utils->debug_message( __( 'User not found on secondary site.', 'wp-multisite-internal-sso' ) . ' ' . $user_login );
+            $this->utils->debug_message( 'Invalid user identifier provided to log_user_in.' );
+            return;
+        }
+
+        $user = get_user_by( 'ID', $user_id );
+
+        if ( $user ) {
+            wp_set_current_user( $user->ID );
+            wp_set_auth_cookie( $user->ID );
+            do_action( 'wp_login', $user->user_login, $user );
+            $this->utils->debug_message( 'User ID ' . $user->ID . ' (' . $user->user_login . ') logged in successfully.' );
+        } else {
+            $this->utils->debug_message( 'User not found for ID: ' . $user_id );
         }
     }
 
