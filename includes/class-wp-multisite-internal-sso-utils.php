@@ -23,7 +23,7 @@ class WP_Multisite_Internal_SSO_Utils {
                 if ( $space_above ) {
                     error_log( "\n\n", 3, $log_file );
                 }
-                error_log( "WPMIS SSO: " . $message . "\n", 3, $log_file );
+                error_log( date('Y-m-d H:i:s') . " WPMIS SSO: " . $message . "\n", 3, $log_file );
             } else {
                 error_log( "WPMIS SSO: Log file is not writable." );
             }
