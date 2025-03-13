@@ -2,7 +2,7 @@
 
 A WordPress plugin that enables Single Sign-On (SSO) for users across multiple sites in a WordPress Multisite network. This plugin automatically logs in users from a primary site to a secondary site within the same network, facilitating seamless access between sites without requiring reauthentication.
 
-Currently, this is omni directional, users from Site 1 have access to Site 2 (if they've been added to both sites) but not vice versa.
+Currently, this works in all directions, users from Site 2 have access to Site 1.
 
 ## Features
 
@@ -28,16 +28,11 @@ Currently, this is omni directional, users from Site 1 have access to Site 2 (if
 
 ## Configuration
 
-- **Primary Site**: This is the main site in your WordPress Multisite network, which holds the user accounts. Set this in the plugin code under the `$primary_site` variable.
-- **Secondary Site**: Sites where users will be logged in automatically if they are authenticated on the primary site. This is defined in the `$secondary_site` variable.
+- **Primary Site**: This is the main site in your WordPress Multisite network, which holds the user accounts. Set this in the plugin settings for the primary site.
+- **Secondary Site**: Sites where users will be logged in automatically if they are authenticated on the primary site. Set this in the plugin settings for the primary site.
 
 The plugin is designed to run seamlessly across the multisite network with no additional configuration required after installation. However, the following customization options are available:
 
-### Customizing the Primary and Secondary Sites
-
-Edit the following variables in `class-wp-multisite-internal-sso.php` to suit your environment:
-- `$primary_site`: Define the primary site’s domain (e.g., `'multisite.lndo.site'`).
-- `$secondary_site`: Define the secondary site’s domain (e.g., `'bar.site'`).
 
 ### Token and Cookie Management
 
@@ -47,8 +42,7 @@ The plugin uses tokens to verify users during the SSO process. These tokens are 
 
 ### SSO Flow
 
-1. **Login to Primary Site**: The user must first log in to the primary site.
-2. **Redirect to Secondary Site**: When navigating to a secondary site, the user will be automatically logged in if they are authenticated on the primary site.
+1. **Login**: The user can log into either site and then be logged into the other automatically
 3. **Token Verification**: The plugin generates a unique token on the primary site, which is sent to the secondary site. The secondary site verifies the token and logs the user in automatically.
 
 ### Logout
@@ -57,7 +51,7 @@ Users can log out from all sites in the network by clicking the **Logout** butto
 
 ### Clear Cookies
 
-The plugin provides an option to clear authentication cookies. Clicking the **Clear Cookies** link will remove all login-related cookies, forcing the user to reauthenticate.
+The plugin provides an option to clear authentication cookies when in dev mode. Clicking the **Clear Cookies** link will remove all login-related cookies, forcing the user to reauthenticate.
 
 ## Hooks
 
@@ -67,7 +61,7 @@ The plugin provides an option to clear authentication cookies. Clicking the **Cl
 
 ## Developer Notes
 
-- **Debugging**: You can enable debugging by setting `WP_DEBUG` to `true` in the `wp-config.php` file. This will log messages to the debug log.
+- **Debugging**: You can enable debugging by setting `WP_DEBUG` and `WP_DEBUG_LOG` to `true` in the `wp-config.php` file. This will log messages to an sso-debug.log. The file must be created first.
 - **Customizing Token Generation**: The token generation method is based on the `AUTH_SALT` constant. You can adjust the method of token creation or add additional security measures if needed.
 
 ## Security

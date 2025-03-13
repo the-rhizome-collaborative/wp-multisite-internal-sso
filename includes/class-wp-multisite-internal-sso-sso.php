@@ -310,9 +310,10 @@ class WP_Multisite_Internal_SSO_SSO {
     /**
      * Get the current site URL.
      *
-     * @return string Current site URL.
+     * @return string Current page URL.
      */
     private function get_current_site_url() {
-        return trailingslashit( home_url() );
+        global $wp;
+		return home_url( $wp->request );
     }
 }
