@@ -82,7 +82,7 @@ class WP_Multisite_Internal_SSO {
         add_action( 'admin_init', array( $this->settings, 'register_settings' ) );
         add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
-        add_filter( 'login_redirect', array( $this->sso, 'wpmis_sso_login_redirect' ), 10, 3 );
+        //add_filter( 'login_redirect', array( $this->sso, 'wpmis_sso_login_redirect' ), 10, 3 ); //removing as we want user to stay on the page where they logged in.
         add_action( 'init', array( $this->auth, 'handle_actions' ) );
 
         if ( WP_DEBUG ) {
