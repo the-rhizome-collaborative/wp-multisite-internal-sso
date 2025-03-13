@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: WP Multisite Internal SSO
- * Plugin URI:  https://github.com/9ete/wp-multisite-internal-sso
+ * Plugin URI:  https://github.com/the-rhizome-collaborative/wp-multisite-internal-sso
  * Description: Enables automatic login (SSO) for users from one multisite installation to another.
- * Version:     0.1.13
- * Author:      9ete
- * Author URI:  https://petelower.com
+ * Version:     0.2.00
+ * Author:      The Rhizome Collaborative
+ * Author URI:  https://rhizomecollaborative.com
  * Network:     true
  * License:     GPL2
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
