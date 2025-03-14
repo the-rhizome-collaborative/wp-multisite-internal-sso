@@ -3,7 +3,7 @@
  * Plugin Name: WP Multisite Internal SSO
  * Plugin URI:  https://github.com/the-rhizome-collaborative/wp-multisite-internal-sso
  * Description: Enables automatic login (SSO) for users from one multisite installation to another.
- * Version:     0.2.00
+ * Version:     0.2.01
  * Author:      The Rhizome Collaborative
  * Author URI:  https://rhizomecollaborative.com
  * Network:     true
@@ -70,9 +70,14 @@ function wpmisso_allow_request() {
 add_action('init', 'wpmisso_redirect_cookie_count');
 function wpmisso_redirect_cookie_count()
 {
-    if (isset($_GET['wpmisso_request'])) {
+	$utils = new WP_Multisite_Internal_SSO_Utils();
+	$utils->debug_message( 'Setting cookie count' );
+	if (isset($_GET['wpmisso_request'])) {
+		$utils->debug_message( 'Has wpmisso_request' );
         $cookie_name = 'wpmisso_request';
         $cookie_value = isset($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] + 1 : 1;
         setcookie($cookie_name, $cookie_value, time() + 3600, '/', '', isset($_SERVER['HTTPS']), true);
-    }
+    } else {
+		$utils->debug_message( 'No wpmisso_request' );
+	}
 }

@@ -101,6 +101,9 @@ Contributions are welcome! Please fork this repository and submit a pull request
 
 ## Changelog
 
+### Version 0.2.01
+- Made updates around the redirect logic so that the user is always returned to the page where the request was made from.
+
 ### Version 0.0.7
 - Initial release with basic SSO functionality.
 - Added logout button and cookie clearing options.
