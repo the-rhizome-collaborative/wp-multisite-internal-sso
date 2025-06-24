@@ -85,7 +85,7 @@ class WP_Multisite_Internal_SSO_SSO {
      * Check and handle SSO logic on 'template_redirect' hook.
      */
     public function check_sso() {
-        if ( is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
+        if ( is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) || WPBYPASS_SSO == true ) {
             $this->utils->debug_message( __( 'Skipping SSO logic for admin and AJAX requests.', 'wp-multisite-internal-sso' ) );
             return;
         }

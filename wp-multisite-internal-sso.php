@@ -3,7 +3,7 @@
  * Plugin Name: WP Multisite Internal SSO
  * Plugin URI:  https://github.com/the-rhizome-collaborative/wp-multisite-internal-sso
  * Description: Enables automatic login (SSO) for users from one multisite installation to another.
- * Version:     0.2.01
+ * Version:     0.2.02
  * Author:      The Rhizome Collaborative
  * Author URI:  https://rhizomecollaborative.com
  * Network:     true
@@ -18,6 +18,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'WPMIS_SSO_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'WPMIS_SSO_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WPMIS_SSO_PLUGIN_VERSION',  get_file_data(__FILE__, array('Version' => 'Version'))['Version'] );
+define('WPBYPASS_SSO', false);
+
+if (isset($_SERVER['HTTP_USER_AGENT']) &&
+   (strpos($_SERVER['HTTP_USER_AGENT'], 'facebookexternalhit') !== false ||
+    strpos($_SERVER['HTTP_USER_AGENT'], 'Facebot') !== false)) {
+	// Bypass SSO for Facebook's crawler to prevent issues with caching and redirects
+	error_log('Bypassing SSO for Facebook crawler: ' . $_SERVER['HTTP_USER_AGENT']);
+	// This is necessary to prevent Facebook from getting stuck in a redirect loop
+    define('WPBYPASS_SSO', true);
+}
 
 require_once WPMIS_SSO_PLUGIN_PATH . 'includes/class-wp-multisite-internal-sso-utils.php';
 require_once WPMIS_SSO_PLUGIN_PATH . 'includes/class-wp-multisite-internal-sso.php';

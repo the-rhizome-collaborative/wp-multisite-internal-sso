@@ -100,6 +100,8 @@ This plugin is licensed under the GPL v2. See the [LICENSE](LICENSE) file for mo
 Contributions are welcome! Please fork this repository and submit a pull request. Ensure your code follows WordPress coding standards and includes appropriate tests.
 
 ## Changelog
+### Version 0.2.02
+- Added a bypass for FaceBook
 
 ### Version 0.2.01
 - Made updates around the redirect logic so that the user is always returned to the page where the request was made from.
